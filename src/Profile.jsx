@@ -7,27 +7,7 @@ const client = new Anthropic({
   dangerouslyAllowBrowser: true
 })
 
-const inputStyle = {
-  background: '#111',
-  border: '1px solid #2a2a2a',
-  borderRadius: '8px',
-  padding: '0.6rem 1rem',
-  color: '#fff',
-  fontSize: '0.875rem',
-  outline: 'none',
-  width: '100%',
-  boxSizing: 'border-box',
-}
-
-const sectionStyle = {
-  background: '#1a1a1a',
-  border: '1px solid #2a2a2a',
-  borderRadius: '12px',
-  padding: '1.5rem',
-  marginBottom: '1rem',
-}
-
-export default function Profile() {
+export default function Profile({ colors, input, card }) {
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
@@ -38,6 +18,17 @@ export default function Profile() {
     technical_skills: '', languages: '',
     experience: '', projects: '', summary: ''
   })
+
+  const label = {
+    color: colors.muted,
+    fontSize: '0.75rem',
+    fontWeight: '500',
+    letterSpacing: '0.05em',
+    textTransform: 'uppercase',
+    marginBottom: '0.75rem',
+    marginTop: 0,
+    display: 'block',
+  }
 
   useEffect(() => {
     async function loadProfile() {
@@ -170,71 +161,73 @@ export default function Profile() {
       setSaved(true)
       setTimeout(() => setSaved(false), 3000)
     } else {
-      console.error(error)
       alert('Error saving profile: ' + error.message)
     }
     setSaving(false)
   }
 
   return (
-    <div style={{ maxWidth: '700px', margin: '0 auto', paddingBottom: '2rem' }}>
+    <div style={{ maxWidth: '700px', margin: '0 auto', paddingBottom: '2rem', fontFamily: 'Inter, sans-serif' }}>
 
-      <div style={{ ...sectionStyle, textAlign: 'center' }}>
-        <label style={{ cursor: 'pointer' }}>
-          <div style={{ border: '1px dashed #333', borderRadius: '8px', padding: '2rem' }}>
-            <p style={{ color: loading ? '#60a5fa' : '#888', margin: 0, fontSize: '0.9rem' }}>
-              {loading ? 'Reading your CV...' : 'Click to upload your CV (PDF)'}
-            </p>
-          </div>
-          <input type="file" accept=".pdf" onChange={handleCV} style={{ display: 'none' }} />
-        </label>
-      </div>
+      <label style={{ display: 'block', background: colors.surface, border: `1px dashed ${colors.border}`, borderRadius: '14px', padding: '2rem', textAlign: 'center', cursor: 'pointer', marginBottom: '1rem', transition: 'all 0.2s' }}>
+        <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>{loading ? '⏳' : '📄'}</div>
+        <p style={{ color: loading ? '#6366f1' : colors.muted, margin: 0, fontSize: '0.9rem', fontWeight: '500' }}>
+          {loading ? 'Reading your CV with AI...' : 'Upload CV to auto-fill profile'}
+        </p>
+        <p style={{ color: colors.subtle, margin: '4px 0 0', fontSize: '0.75rem' }}>PDF files only</p>
+        <input type="file" accept=".pdf" onChange={handleCV} style={{ display: 'none' }} />
+      </label>
 
-      <div style={sectionStyle}>
-        <p style={{ color: '#fff', fontWeight: '500', marginBottom: '1rem', marginTop: 0 }}>Personal Info</p>
+      <div style={card}>
+        <p style={label}>Personal Info</p>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          <input style={inputStyle} placeholder="Name" value={profile.name} onChange={e => setProfile({ ...profile, name: e.target.value })} />
-          <input style={inputStyle} placeholder="Email" type="email" value={profile.email} onChange={e => setProfile({ ...profile, email: e.target.value })} />
-          <input style={inputStyle} placeholder="Phone" type="tel" value={profile.phone} onChange={e => setProfile({ ...profile, phone: e.target.value })} />
+          <input style={input} placeholder="Full name" value={profile.name} onChange={e => setProfile({ ...profile, name: e.target.value })} />
+          <input style={input} placeholder="Email" type="email" value={profile.email} onChange={e => setProfile({ ...profile, email: e.target.value })} />
+          <input style={input} placeholder="Phone" type="tel" value={profile.phone} onChange={e => setProfile({ ...profile, phone: e.target.value })} />
         </div>
       </div>
 
-      <div style={sectionStyle}>
-        <p style={{ color: '#fff', fontWeight: '500', marginBottom: '1rem', marginTop: 0 }}>Education</p>
+      <div style={card}>
+        <p style={label}>Education</p>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-          <input style={inputStyle} placeholder="University" value={profile.university} onChange={e => setProfile({ ...profile, university: e.target.value })} />
-          <input style={inputStyle} placeholder="Major" value={profile.major} onChange={e => setProfile({ ...profile, major: e.target.value })} />
-          <input style={inputStyle} placeholder="GPA" type="number" step="0.01" min="0" max="4" value={profile.gpa} onChange={e => setProfile({ ...profile, gpa: e.target.value })} />
-          <input style={inputStyle} placeholder="Graduation Year" type="number" min="2000" max="2030" value={profile.graduation_year} onChange={e => setProfile({ ...profile, graduation_year: e.target.value })} />
+          <input style={input} placeholder="University" value={profile.university} onChange={e => setProfile({ ...profile, university: e.target.value })} />
+          <input style={input} placeholder="Major" value={profile.major} onChange={e => setProfile({ ...profile, major: e.target.value })} />
+          <input style={input} placeholder="GPA" type="number" step="0.01" min="0" max="4" value={profile.gpa} onChange={e => setProfile({ ...profile, gpa: e.target.value })} />
+          <input style={input} placeholder="Graduation Year" type="number" min="2000" max="2030" value={profile.graduation_year} onChange={e => setProfile({ ...profile, graduation_year: e.target.value })} />
         </div>
       </div>
 
-      <div style={sectionStyle}>
-        <p style={{ color: '#fff', fontWeight: '500', marginBottom: '1rem', marginTop: 0 }}>Skills</p>
+      <div style={card}>
+        <p style={label}>Skills</p>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          <input style={inputStyle} placeholder="Technical Skills (React, Python, etc.)" value={profile.technical_skills} onChange={e => setProfile({ ...profile, technical_skills: e.target.value })} />
-          <input style={inputStyle} placeholder="Languages (Arabic, English, etc.)" value={profile.languages} onChange={e => setProfile({ ...profile, languages: e.target.value })} />
+          <input style={input} placeholder="Technical skills (React, Python, etc.)" value={profile.technical_skills} onChange={e => setProfile({ ...profile, technical_skills: e.target.value })} />
+          <input style={input} placeholder="Languages (Arabic, English, etc.)" value={profile.languages} onChange={e => setProfile({ ...profile, languages: e.target.value })} />
         </div>
       </div>
 
-      <div style={sectionStyle}>
-        <p style={{ color: '#fff', fontWeight: '500', marginBottom: '1rem', marginTop: 0 }}>Experience</p>
-        <textarea style={{ ...inputStyle, minHeight: '100px', resize: 'vertical' }} placeholder="Your work experience..." value={profile.experience} onChange={e => setProfile({ ...profile, experience: e.target.value })} />
+      <div style={card}>
+        <p style={label}>Experience</p>
+        <textarea style={{ ...input, minHeight: '100px', resize: 'vertical' }} placeholder="Your work experience..." value={profile.experience} onChange={e => setProfile({ ...profile, experience: e.target.value })} />
       </div>
 
-      <div style={sectionStyle}>
-        <p style={{ color: '#fff', fontWeight: '500', marginBottom: '1rem', marginTop: 0 }}>Projects</p>
-        <textarea style={{ ...inputStyle, minHeight: '100px', resize: 'vertical' }} placeholder="Your projects..." value={profile.projects} onChange={e => setProfile({ ...profile, projects: e.target.value })} />
+      <div style={card}>
+        <p style={label}>Projects</p>
+        <textarea style={{ ...input, minHeight: '100px', resize: 'vertical' }} placeholder="Your projects..." value={profile.projects} onChange={e => setProfile({ ...profile, projects: e.target.value })} />
       </div>
 
-      <div style={sectionStyle}>
-        <p style={{ color: '#fff', fontWeight: '500', marginBottom: '1rem', marginTop: 0 }}>Summary</p>
-        <textarea style={{ ...inputStyle, minHeight: '100px', resize: 'vertical' }} placeholder="Your summary..." value={profile.summary} onChange={e => setProfile({ ...profile, summary: e.target.value })} />
+      <div style={card}>
+        <p style={label}>Summary</p>
+        <textarea style={{ ...input, minHeight: '100px', resize: 'vertical' }} placeholder="A short bio..." value={profile.summary} onChange={e => setProfile({ ...profile, summary: e.target.value })} />
       </div>
 
-      {saved && <p style={{ color: '#4ade80', textAlign: 'center', marginBottom: '1rem', fontSize: '0.875rem' }}>Profile saved successfully!</p>}
+      {saved && (
+        <div style={{ background: '#0a2818', border: '1px solid #10b98133', borderRadius: '10px', padding: '0.75rem 1rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span style={{ color: '#34d399' }}>✓</span>
+          <p style={{ color: '#34d399', margin: 0, fontSize: '0.875rem' }}>Profile saved successfully</p>
+        </div>
+      )}
 
-      <button onClick={saveProfile} disabled={saving} style={{ background: '#fff', color: '#000', border: 'none', borderRadius: '8px', padding: '0.7rem 1.5rem', fontWeight: '600', cursor: 'pointer', fontSize: '0.875rem', width: '100%' }}>
+      <button onClick={saveProfile} disabled={saving} style={{ background: '#6366f1', color: '#fff', border: 'none', borderRadius: '10px', padding: '0.75rem 1.5rem', fontWeight: '600', cursor: 'pointer', fontSize: '0.875rem', width: '100%', opacity: saving ? 0.7 : 1 }}>
         {saving ? 'Saving...' : 'Save Profile'}
       </button>
 
