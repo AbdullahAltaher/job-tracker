@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from './supabaseClient'
+import Profile from './Profile'
+import Admin from './Admin'
 
 const statusColors = {
   applied:   { bg: '#1e3a5f', color: '#60a5fa' },
@@ -22,6 +24,8 @@ const inputStyle = {
 
 export default function App() {
   const [session, setSession] = useState(null)
+  const [page, setPage] = useState('tracker')
+  const [isAdmin, setIsAdmin] = useState(false)
   const [applications, setApplications] = useState([])
   const [loading, setLoading] = useState(true)
   const [form, setForm] = useState({ company: '', position: '', status: 'applied', applied_date: '', notes: '' })
@@ -41,8 +45,20 @@ export default function App() {
   }, [])
 
   useEffect(() => {
-    if (session) fetchApplications()
+    if (session) {
+      fetchApplications()
+      checkAdmin()
+    }
   }, [session])
+
+  async function checkAdmin() {
+    const { data } = await supabase
+      .from('profiles')
+      .select('is_admin')
+      .eq('user_id', session.user.id)
+      .single()
+    if (data?.is_admin) setIsAdmin(true)
+  }
 
   async function fetchApplications() {
     const { data, error } = await supabase
@@ -68,6 +84,8 @@ export default function App() {
   async function handleSignOut() {
     await supabase.auth.signOut()
     setApplications([])
+    setIsAdmin(false)
+    setPage('tracker')
   }
 
   async function addApplication() {
@@ -101,7 +119,6 @@ export default function App() {
       <div style={{ background: '#1a1a1a', border: '1px solid #2a2a2a', borderRadius: '16px', padding: '2rem', width: '100%', maxWidth: '400px' }}>
         <h1 style={{ color: '#fff', fontSize: '1.5rem', fontWeight: '600', marginBottom: '0.25rem', marginTop: 0 }}>Job Tracker</h1>
         <p style={{ color: '#666', marginBottom: '1.5rem' }}>{authMode === 'login' ? 'Sign in to your account' : 'Create a new account'}</p>
-
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           <input style={inputStyle} placeholder="Email" type="email" value={authForm.email} onChange={e => setAuthForm({ ...authForm, email: e.target.value })} />
           <input style={inputStyle} placeholder="Password" type="password" value={authForm.password} onChange={e => setAuthForm({ ...authForm, password: e.target.value })} />
@@ -120,17 +137,58 @@ export default function App() {
     </div>
   )
 
+  const navbar = (
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+      <h1 style={{ color: '#fff', fontSize: '1.8rem', fontWeight: '600', margin: 0 }}>
+        {page === 'tracker' ? 'Job Tracker' : page === 'profile' ? 'My Profile' : 'Admin Dashboard'}
+      </h1>
+      <div style={{ display: 'flex', gap: '8px' }}>
+        {page !== 'tracker' && (
+          <button onClick={() => setPage('tracker')} style={{ background: 'transparent', border: '1px solid #2a2a2a', color: '#888', borderRadius: '8px', padding: '6px 14px', cursor: 'pointer', fontSize: '0.8rem' }}>
+            Job Tracker
+          </button>
+        )}
+        {page !== 'profile' && (
+          <button onClick={() => setPage('profile')} style={{ background: 'transparent', border: '1px solid #2a2a2a', color: '#888', borderRadius: '8px', padding: '6px 14px', cursor: 'pointer', fontSize: '0.8rem' }}>
+            My Profile
+          </button>
+        )}
+        {isAdmin && page !== 'admin' && (
+          <button onClick={() => setPage('admin')} style={{ background: 'transparent', border: '1px solid #534AB7', color: '#7F77DD', borderRadius: '8px', padding: '6px 14px', cursor: 'pointer', fontSize: '0.8rem' }}>
+            Admin
+          </button>
+        )}
+        <button onClick={handleSignOut} style={{ background: 'transparent', border: '1px solid #2a2a2a', color: '#888', borderRadius: '8px', padding: '6px 14px', cursor: 'pointer', fontSize: '0.8rem' }}>
+          Sign Out
+        </button>
+      </div>
+    </div>
+  )
+
+  if (page === 'profile') return (
+    <div style={{ minHeight: '100vh', background: '#0f0f0f', fontFamily: 'Inter, sans-serif', padding: '2rem', boxSizing: 'border-box' }}>
+      <div style={{ maxWidth: '900px', margin: '0 auto' }}>
+        {navbar}
+        <Profile />
+      </div>
+    </div>
+  )
+
+  if (page === 'admin' && isAdmin) return (
+    <div style={{ minHeight: '100vh', background: '#0f0f0f', fontFamily: 'Inter, sans-serif', padding: '2rem', boxSizing: 'border-box' }}>
+      <div style={{ maxWidth: '900px', margin: '0 auto' }}>
+        {navbar}
+        <Admin />
+      </div>
+    </div>
+  )
+
   return (
     <div style={{ minHeight: '100vh', background: '#0f0f0f', padding: '2rem', fontFamily: 'Inter, sans-serif', boxSizing: 'border-box' }}>
       <div style={{ maxWidth: '900px', margin: '0 auto' }}>
 
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.25rem' }}>
-          <h1 style={{ color: '#fff', fontSize: '1.8rem', fontWeight: '600', margin: 0 }}>Job Tracker</h1>
-          <button onClick={handleSignOut} style={{ background: 'transparent', border: '1px solid #2a2a2a', color: '#888', borderRadius: '8px', padding: '6px 14px', cursor: 'pointer', fontSize: '0.8rem' }}>
-            Sign Out
-          </button>
-        </div>
-        <p style={{ color: '#666', marginBottom: '2rem' }}>{applications.length} applications total</p>
+        {navbar}
+        <p style={{ color: '#666', marginBottom: '2rem', marginTop: '-1.5rem' }}>{applications.length} applications total</p>
 
         <div style={{ background: '#1a1a1a', border: '1px solid #2a2a2a', borderRadius: '12px', padding: '1.5rem', marginBottom: '2rem' }}>
           <p style={{ color: '#fff', fontWeight: '500', marginBottom: '1rem', marginTop: 0 }}>Add new application</p>
